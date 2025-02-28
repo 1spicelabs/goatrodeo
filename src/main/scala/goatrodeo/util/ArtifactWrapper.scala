@@ -1,20 +1,20 @@
 package goatrodeo.util
 
-import java.io.InputStream
-import java.io.File
-import java.io.BufferedInputStream
-import java.io.FileInputStream
-import java.io.ByteArrayInputStream
+import com.typesafe.scalalogging.Logger
 import org.apache.tika.config.TikaConfig
 import org.apache.tika.metadata.Metadata
 import org.apache.tika.metadata.TikaCoreProperties
-import java.util.UUID
+
+import java.io.BufferedInputStream
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import org.apache.commons.compress.utils.IOUtils
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import java.io.FileOutputStream
-import com.typesafe.scalalogging.Logger
+import java.util.UUID
 
 /** In OmniBOR, everything is seen as a byte stream.
   *
@@ -53,7 +53,7 @@ sealed trait ArtifactWrapper {
 
   def mimeType: String = _mimeType
 
-  lazy val uuid = UUID.randomUUID().toString()
+  lazy val uuid: String = UUID.randomUUID().toString()
 
   /** Get the name for the file irregarless of the path
     */

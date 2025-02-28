@@ -14,69 +14,53 @@ limitations under the License. */
 
 package goatrodeo.util
 
-import java.io.File
-import java.io.FileOutputStream
+import goatrodeo.omnibor.StringOrPair
+import io.bullet.borer.Cbor
+import org.apache.bcel.classfile.ClassParser
+import org.apache.commons.compress.archivers.ArchiveEntry
+import org.apache.commons.compress.archivers.ArchiveInputStream
+
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
-import java.net.URL
-import java.net.URLEncoder
-import java.net.HttpURLConnection
-import java.security.MessageDigest
-import javax.net.ssl.HttpsURLConnection
-import java.util.concurrent.atomic.AtomicReference
-import java.text.NumberFormat
-import java.security.SecureRandom
 import java.io.OutputStream
-import java.io.ObjectOutputStream
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
-import java.io.ByteArrayInputStream
-import scala.util.Try
-import scala.util.Failure
-import scala.util.Success
-import org.apache.bcel.classfile.ClassParser
-import io.bullet.borer.Cbor
-
-import java.util.concurrent.atomic.AtomicInteger
-import org.apache.commons.compress.archivers.ArchiveStreamFactory
-import org.apache.commons.compress.archivers.ArchiveInputStream
-import org.apache.commons.compress.archivers.ArchiveEntry
-import org.apache.commons.compress.compressors.CompressorInputStream
-
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import scala.collection.immutable.TreeMap
-import scala.collection.immutable.TreeSet
-import org.apache.tika.config.TikaConfig
-import org.apache.tika.metadata.Metadata
-import org.apache.tika.metadata.TikaCoreProperties
-import java.io.BufferedInputStream
-import com.github.packageurl.PackageURL
-import java.nio.file.Path
+import java.nio.file.FileVisitResult
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.FileVisitResult
-import java.io.IOException
-import goatrodeo.omnibor.StringOrPair
+import java.security.MessageDigest
+import java.security.SecureRandom
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.util.TimeZone
 import java.util.Date
+import java.util.TimeZone
+import java.util.concurrent.atomic.AtomicReference
+import scala.collection.immutable.TreeMap
+import scala.collection.immutable.TreeSet
+import scala.util.Try
 type GitOID = String
 
 /** A bunch of helpers/utilities
   */
 object Helpers {
 
-  /**
-   * Merge TreeMaps together
-   * 
-   * @param a TreeMap
-   * @param b TreeMap
-   * 
-   * @return the merged TreeMap
-   */
+  /** Merge TreeMaps together
+    *
+    * @param a
+    *   TreeMap
+    * @param b
+    *   TreeMap
+    *
+    * @return
+    *   the merged TreeMap
+    */
   def mergeTreeMaps(
       a: TreeMap[String, TreeSet[StringOrPair]],
       b: TreeMap[String, TreeSet[StringOrPair]]
@@ -146,7 +130,7 @@ object Helpers {
 
   /** Mime types for Java class files
     */
-  lazy val javaClassMimeTypes = Set(
+  lazy val javaClassMimeTypes: Set[String] = Set(
     "application/java-vm",
     "application/java-byte-code",
     "application/x-class-file",
@@ -182,7 +166,7 @@ object Helpers {
               val clz = cp.parse()
               clz.getSourceFilePath()
             } catch {
-              case e: OutOfMemoryError => 
+              case e: OutOfMemoryError =>
                 // if the classfile is corrupt, we may get an OOME, swallow it and just don't
                 // return a file name
                 throw new Exception(f"Failed to parse class ${e.getMessage()}")
@@ -208,9 +192,8 @@ object Helpers {
 
   }
 
-  /**
-   * Get the current date in ISO 8601 format
-   */
+  /** Get the current date in ISO 8601 format
+    */
   def currentDate8601(): String = {
     val timezone = TimeZone.getTimeZone("UTC")
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
@@ -677,24 +660,28 @@ object Helpers {
     ret.toByteArray()
   }
 
-  /**
-    * Copy from input stream to output stream
+  /** Copy from input stream to output stream
     *
-    * @param in the input stream
-    * @param out the output stream
-    * @return number of bytes
+    * @param in
+    *   the input stream
+    * @param out
+    *   the output stream
+    * @return
+    *   number of bytes
     */
   def copy(in: InputStream, out: OutputStream): Long = {
-    var cnt = 0L 
+    var cnt = 0L
     val buffer: Array[Byte] = new Array[Byte](4096)
     var bytesRead = 0
-    while ({bytesRead = in.read(buffer)
-      bytesRead >= 0}) {
-        if (bytesRead > 0) {
-          cnt += bytesRead
-          out.write(buffer, 0, bytesRead)
-        }
+    while ({
+      bytesRead = in.read(buffer)
+      bytesRead >= 0
+    }) {
+      if (bytesRead > 0) {
+        cnt += bytesRead
+        out.write(buffer, 0, bytesRead)
       }
+    }
     out.flush()
     cnt
   }
@@ -762,7 +749,6 @@ object Helpers {
 
   }
 
-
   /** Slurp the contents of an InputStream into a temp file
     *
     * @param what
@@ -776,7 +762,7 @@ object Helpers {
       tempDir: Path
   ): File = {
 
-    val retFile =  Files.createTempFile(tempDir, "goats", ".temp").toFile()
+    val retFile = Files.createTempFile(tempDir, "goats", ".temp").toFile()
     val ret = FileOutputStream(retFile)
     val buffer = new Array[Byte](4096)
 
@@ -1106,7 +1092,7 @@ object GitOIDUtils {
       tpe.gitoidName(),
       hashType.hashTypeName(),
       hashAsHex(inputStream, len, hashType, tpe)
-    ).intern()
+    ) /*.intern()*/
   }
 
   def computeAllHashes(
@@ -1120,13 +1106,25 @@ object GitOIDUtils {
       Vector(
         url(is(), theFile.size(), HashType.SHA1),
         String
-          .format("sha1:%s", Helpers.toHex(Helpers.computeSHA1(is()))).intern(),
+          .format(
+            "sha1:%s",
+            Helpers.toHex(Helpers.computeSHA1(is()))
+          ) /*.intern()*/,
         String
-          .format("sha256:%s", Helpers.toHex(Helpers.computeSHA256(is()))).intern(),
+          .format(
+            "sha256:%s",
+            Helpers.toHex(Helpers.computeSHA256(is()))
+          ) /*.intern()*/,
         String
-          .format("sha512:%s", Helpers.toHex(Helpers.computeSHA512(is()))).intern(),
+          .format(
+            "sha512:%s",
+            Helpers.toHex(Helpers.computeSHA512(is()))
+          ) /*.intern()*/,
         String
-          .format("md5:%s", Helpers.toHex(Helpers.computeMD5(is()))).intern()
+          .format(
+            "md5:%s",
+            Helpers.toHex(Helpers.computeMD5(is()))
+          ) /*.intern()*/
       )
     )
   }

@@ -1,30 +1,29 @@
 package goatrodeo.omnibor
 
-import java.io.File
-import java.nio.file.Files
-import java.io.FileOutputStream
-import goatrodeo.util.Helpers
-import goatrodeo.envelopes.DataFileEnvelope
-import java.nio.ByteBuffer
-import goatrodeo.envelopes.MD5
-import goatrodeo.envelopes.Position
-import goatrodeo.envelopes.MultifilePosition
-import java.io.FileInputStream
-import goatrodeo.envelopes.IndexFileEnvelope
-import scala.util.Try
-import goatrodeo.envelopes.ClusterFileEnvelope
-import java.time.LocalDateTime
-import java.time.Instant
-import java.time.ZoneOffset
-import java.nio.channels.FileChannel
-import java.time.Duration
-import scala.math.Ordering.Implicits._
 import com.typesafe.scalalogging.Logger
+import goatrodeo.envelopes.ClusterFileEnvelope
+import goatrodeo.envelopes.DataFileEnvelope
+import goatrodeo.envelopes.IndexFileEnvelope
+import goatrodeo.envelopes.Position
+import goatrodeo.util.Helpers
+
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
+import java.nio.file.Files
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneOffset
+import scala.math.Ordering.Implicits._
+import scala.util.Try
 
 /** Manage many parts of persisting/retrieving the graph information
   */
 object GraphManager {
-  val logger = Logger(getClass())
+  val logger: Logger = Logger(getClass())
   object Consts {
     val DataFileMagicNumber: Int = 0x00be1100 // Bell
     val IndexFileMagicNumber: Int = 0x54154170 // Shishitō
@@ -43,6 +42,7 @@ object GraphManager {
     // create temporary file
     val tempFile =
       Files.createTempFile(targetDirectory.toPath(), "goat_rodeo_data_", ".grd")
+
     val fileWriter = new FileOutputStream(tempFile.toFile())
     val writer = fileWriter.getChannel()
     var previousPosition: Long = 0
@@ -71,10 +71,10 @@ object GraphManager {
 
       val md5 = entry.identifierMD5()
 
-      val entryBytes = entry.encodeCBOR() // compression.compress(entry.encodeCBOR())
+      val entryBytes =
+        entry.encodeCBOR() // compression.compress(entry.encodeCBOR())
 
       pairs = pairs.appended((Helpers.toHex(md5), md5, currentPosition))
-
 
       val toAlloc = 256 + (entryBytes.length)
       val bb = ByteBuffer.allocate(toAlloc)
@@ -105,7 +105,9 @@ object GraphManager {
     // compute SHA256 of the file
     writer.close()
 
-    logger.info(f"Finished write loop at ${Duration.between(start, Instant.now())}")
+    logger.info(
+      f"Finished write loop at ${Duration.between(start, Instant.now())}"
+    )
 
     // rename the file to <sha256>.grd
     val sha256Long = Helpers.byteArrayToLong63Bits(
@@ -168,8 +170,7 @@ object GraphManager {
 
   def writeEntries(
       targetDirectory: File,
-      entries: Iterator[Item],
-      
+      entries: Iterator[Item]
   ): (Seq[DataAndIndexFiles], File) = {
     var previousInChain: Long = 0L
     var biggest: Vector[(Item, Int)] = Vector()
@@ -282,11 +283,9 @@ class GRDWalker(source: FileChannel) {
     }
   }
 
-  
-
   def items(): Iterator[Item] = {
     var nextItem = readNext()
-    new Iterator[ Item] {
+    new Iterator[Item] {
 
       override def hasNext: Boolean = nextItem.isDefined
 

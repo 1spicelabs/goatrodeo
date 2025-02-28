@@ -1,31 +1,19 @@
 package goatrodeo.envelopes
 
-import scala.util.Try
-import java.io.DataOutputStream
-import java.io.DataInputStream
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import io.bullet.borer.Cbor
-import io.bullet.borer.Dom.*
-import io.bullet.borer.derivation.key
-import scala.util.Success
-import scala.util.Failure
-import io.bullet.borer.Codec
 import goatrodeo.omnibor.GraphManager
-import java.util.zip.Deflater
-import java.util.zip.DeflaterOutputStream
-import java.io.OutputStream
-import java.util.zip.GZIPOutputStream
-import java.util.zip.InflaterInputStream
-import java.util.zip.GZIPInputStream
-import java.io.InputStream
-import goatrodeo.util.Helpers
-// import scala.collection.immutable.HashSet
+import io.bullet.borer.Cbor
+import io.bullet.borer.Codec
+import io.bullet.borer.Decoder
+import io.bullet.borer.Dom._
 import io.bullet.borer.Encoder
 import io.bullet.borer.Writer
-import io.bullet.borer.Decoder
+import io.bullet.borer.derivation.key
+
 import scala.collection.immutable.TreeMap
 import scala.collection.immutable.TreeSet
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 trait EncodeCBOR {
   def encodeCBORElement(): Element
@@ -135,7 +123,7 @@ object DataFileEnvelope {
       dependsOn: TreeSet[Long] = TreeSet(),
       builtFromMerge: Boolean,
       info: TreeMap[String, String] = TreeMap()
-  ) = DataFileEnvelope(
+  ): DataFileEnvelope = DataFileEnvelope(
     version,
     magic,
     previous,
@@ -170,7 +158,7 @@ object IndexFileEnvelope {
       dataFiles: Vector[Long],
       encoding: String = "MD5/Long/Long",
       info: TreeMap[String, String] = TreeMap()
-  ) = IndexFileEnvelope(
+  ): IndexFileEnvelope = IndexFileEnvelope(
     version = version,
     magic = magic,
     size = size,
@@ -201,18 +189,18 @@ object ClusterFileEnvelope {
       dataFiles: Vector[Long],
       indexFiles: Vector[Long],
       info: TreeMap[String, String] = TreeMap()
-  ) = ClusterFileEnvelope(
+  ): ClusterFileEnvelope = ClusterFileEnvelope(
     version = version,
     magic = magic,
     dataFiles = dataFiles,
     indexFiles = indexFiles,
-    info = info,
+    info = info
   )
 
   given forOption[T: Encoder]: Encoder.DefaultValueAware[Option[T]] =
     new Encoder.DefaultValueAware[Option[T]] {
 
-      def write(w: Writer, value: Option[T]) =
+      def write(w: Writer, value: Option[T]): Writer =
         value match {
           case Some(x) => w.write(x)
           case None    => w.writeNull()
@@ -221,8 +209,8 @@ object ClusterFileEnvelope {
       def withDefaultValue(defaultValue: Option[T]): Encoder[Option[T]] =
         if (defaultValue eq None)
           new Encoder.PossiblyWithoutOutput[Option[T]] {
-            def producesOutputFor(value: Option[T]) = value ne None
-            def write(w: Writer, value: Option[T]) =
+            def producesOutputFor(value: Option[T]): Boolean = value ne None
+            def write(w: Writer, value: Option[T]): Writer =
               value match {
                 case Some(x) => w.write(x)
                 case None    => w

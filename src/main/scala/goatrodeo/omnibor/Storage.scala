@@ -14,46 +14,14 @@ limitations under the License. */
 
 package goatrodeo.omnibor
 
-import java.io.File
-import goatrodeo.util.Helpers
-import scala.util.Try
-import java.util.concurrent.atomic.AtomicReference
-import java.sql.Blob
-import java.sql.PreparedStatement
-import java.net.URL
-import goatrodeo.util.GitOIDUtils
-import goatrodeo.util.GitOID
-import scala.util.Failure
-import scala.util.Success
-import scala.annotation.tailrec
-import java.net.http.HttpRequest
-import java.net.URI
-import java.net.http.HttpRequest.BodyPublishers
-import java.net.http.HttpClient
-import java.net.http.HttpResponse.BodyHandlers
-import java.io.ByteArrayInputStream
-import io.bullet.borer.Json
-import java.nio.file.Files
-import goatrodeo.envelopes.DataFileEnvelope
-import java.io.FileOutputStream
-import goatrodeo.envelopes.MD5
-import goatrodeo.envelopes.Position
-import goatrodeo.envelopes.MultifilePosition
-import java.io.FileInputStream
-import io.bullet.borer.Cbor
-import goatrodeo.envelopes.IndexFileEnvelope
-import java.io.BufferedOutputStream
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.nio.channels.FileChannel
-import java.nio.ByteBuffer
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.util.concurrent.atomic.AtomicInteger
-import java.io.IOException
-import com.typesafe.scalalogging.Logger
 import com.github.packageurl.PackageURL
+import com.typesafe.scalalogging.Logger
+import goatrodeo.util.GitOID
+import goatrodeo.util.Helpers
+
+import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import scala.collection.parallel.CollectionConverters.VectorIsParallelizable
 
 /** An abstract definition of a GitOID Corpus storage backend
@@ -240,7 +208,7 @@ class MemStorage(val targetDir: Option[File])
 
   def purls(): Vector[PackageURL] = thePurls.get()
 
-  override def size() = db.get().size
+  override def size(): Int = db.get().size
 
   override def target(): Option[File] = targetDir
 

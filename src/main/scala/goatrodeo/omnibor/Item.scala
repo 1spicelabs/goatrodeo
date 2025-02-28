@@ -1,27 +1,28 @@
 package goatrodeo.omnibor
 
+import com.github.packageurl.PackageURL
+import com.typesafe.scalalogging.Logger
+import goatrodeo.util.ArtifactWrapper
+import goatrodeo.util.GitOID
+import goatrodeo.util.GitOIDUtils
+import goatrodeo.util.Helpers
+import io.bullet.borer.Cbor
+import io.bullet.borer.Decoder
 import io.bullet.borer.Encoder
 import io.bullet.borer.Writer
-import io.bullet.borer.Decoder
-import io.bullet.borer.Cbor
-import scala.util.Try
-import scala.collection.immutable.TreeSet
 import io.bullet.borer.derivation.key
-import goatrodeo.util.Helpers
-import com.github.packageurl.PackageURL
+
 import scala.collection.immutable.TreeMap
-import goatrodeo.util.ArtifactWrapper
-import goatrodeo.util.GitOIDUtils
-import goatrodeo.util.GitOID
+import scala.collection.immutable.TreeSet
+import scala.util.Try
 
 case class Item(
     identifier: String,
-    //reference: LocationReference,
+    // reference: LocationReference,
     connections: TreeSet[Edge],
     @key("body_mime_type") bodyMimeType: Option[String],
     body: Option[ItemMetaData]
 ) {
-
   def encodeCBOR(): Array[Byte] = cachedCBOR
 
   // def fixReferencePosition(hash: Long, offset: Long): Item = {
@@ -155,7 +156,7 @@ case class Item(
     if (purls.isEmpty) this
     else {
 
-      val textPurls = purls.map(p => p.canonicalize().intern())
+      val textPurls = purls.map(p => p.canonicalize() /*.intern() */ )
       val ret = this.copy(
         connections = this.connections ++ TreeSet(
           textPurls.map(purl => EdgeType.aliasFrom -> purl)*
@@ -218,6 +219,7 @@ case class Item(
 }
 
 object Item {
+  protected val logger: Logger = Logger(getClass())
 
   /** Given an ArtifactWrapper, create an `Item` based on the hashes/gitoids for
     * the artifact
@@ -281,7 +283,7 @@ object Item {
   given forOption[T: Encoder]: Encoder.DefaultValueAware[Option[T]] =
     new Encoder.DefaultValueAware[Option[T]] {
 
-      def write(w: Writer, value: Option[T]) =
+      def write(w: Writer, value: Option[T]): Writer =
         value match {
           case Some(x) => w.write(x)
           case None    => w.writeNull()
@@ -290,8 +292,8 @@ object Item {
       def withDefaultValue(defaultValue: Option[T]): Encoder[Option[T]] =
         if (defaultValue eq None)
           new Encoder.PossiblyWithoutOutput[Option[T]] {
-            def producesOutputFor(value: Option[T]) = value ne None
-            def write(w: Writer, value: Option[T]) =
+            def producesOutputFor(value: Option[T]): Boolean = value ne None
+            def write(w: Writer, value: Option[T]): Writer =
               value match {
                 case Some(x) => w.write(x)
                 case None    => w

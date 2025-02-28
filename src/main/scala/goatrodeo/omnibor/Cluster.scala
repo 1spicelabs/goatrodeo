@@ -1,16 +1,16 @@
 package goatrodeo.omnibor
 
-import java.io.File
-import java.math.BigInteger
-import goatrodeo.util.Helpers
-import scala.util.Using
-import java.io.FileInputStream
 import goatrodeo.envelopes.ClusterFileEnvelope
-import goatrodeo.omnibor.GraphManager.DataAndIndexFiles
-import goatrodeo.envelopes.IndexFileEnvelope
 import goatrodeo.envelopes.DataFileEnvelope
+import goatrodeo.envelopes.IndexFileEnvelope
+import goatrodeo.util.Helpers
+
+import java.io.File
+import java.io.FileInputStream
+import java.math.BigInteger
 import java.nio.channels.FileChannel
 import scala.collection.immutable.TreeSet
+import scala.util.Using
 
 case class IndexFile(
     envelope: IndexFileEnvelope,

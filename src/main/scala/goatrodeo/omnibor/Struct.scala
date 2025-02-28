@@ -14,23 +14,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License. */
 
-import goatrodeo.util.GitOID
 import goatrodeo.util.Helpers
-import scala.util.Try
-import io.bullet.borer.Json
-import io.bullet.borer.Codec
-import io.bullet.borer.Encoder
-import io.bullet.borer.Decoder
 import io.bullet.borer.Cbor
-import io.bullet.borer.derivation.key
-import java.time.Instant
+import io.bullet.borer.Decoder
+import io.bullet.borer.Encoder
 import io.bullet.borer.Writer
-import goatrodeo.util.Helpers.filesForParent
+import io.bullet.borer.derivation.key
+
 import scala.collection.immutable.TreeMap
 import scala.collection.immutable.TreeSet
-import com.github.packageurl.PackageURL
-import goatrodeo.util.ArtifactWrapper
-import goatrodeo.util.GitOIDUtils
+import scala.language.implicitConversions
 
 object EdgeType {
 
@@ -99,7 +92,7 @@ object EdgeType {
 type Edge = (String, String)
 
 sealed trait StringOrPair {
-  def value: String 
+  def value: String
   def mimeType: Option[String] = None
 }
 final case class StringOf(s: String) extends StringOrPair {
@@ -111,12 +104,15 @@ final case class PairOf(s1: String, s2: String) extends StringOrPair {
 }
 
 object StringOrPair {
-  def apply(s: String): StringOrPair = StringOf(s.intern())
-  def apply(s1: String, s2: String): StringOrPair = PairOf(s1.intern(), s2.intern())
-  def apply(s: (String, String)): StringOrPair = PairOf(s._1.intern(), s._2.intern())
+  def apply(s: String): StringOrPair = StringOf(s )
+  def apply(s1: String, s2: String): StringOrPair =
+    PairOf(s1 , s2  )
+  def apply(s: (String, String)): StringOrPair =
+    PairOf(s._1 , s._2  )
 
-  implicit def fromString(s: String): StringOrPair = StringOf(s.intern())
-  implicit def fromPair(p: (String, String)): StringOrPair = PairOf(p._1.intern(), p._2.intern())
+
+  implicit def fromString(s: String): StringOrPair = StringOf(s  )
+  implicit def fromPair(p: (String, String)): StringOrPair =    PairOf(p._1 , p._2  )
 
   given Ordering[StringOrPair] = {
     Ordering.by[StringOrPair, String](e =>

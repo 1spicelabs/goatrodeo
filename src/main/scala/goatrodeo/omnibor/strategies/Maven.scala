@@ -1,30 +1,30 @@
 package goatrodeo.omnibor.strategies
 
-import goatrodeo.util.ArtifactWrapper
-import goatrodeo.omnibor.ToProcess
+import com.github.packageurl.PackageURL
 import com.typesafe.scalalogging.Logger
-import goatrodeo.omnibor.ToProcess.ByUUID
-import goatrodeo.omnibor.ToProcess.ByName
+import goatrodeo.omnibor.EdgeType
+import goatrodeo.omnibor.Item
+import goatrodeo.omnibor.ParentScope
 import goatrodeo.omnibor.ProcessingMarker
 import goatrodeo.omnibor.ProcessingState
-import scala.xml.NodeSeq
-import goatrodeo.omnibor.StringOrPair
-import goatrodeo.omnibor.Item
-import scala.collection.immutable.TreeMap
-import scala.collection.immutable.TreeSet
-import goatrodeo.util.GitOID
 import goatrodeo.omnibor.Storage
-import com.github.packageurl.PackageURL
-import goatrodeo.omnibor.ParentScope
+import goatrodeo.omnibor.StringOrPair
+import goatrodeo.omnibor.ToProcess
+import goatrodeo.omnibor.ToProcess.ByName
+import goatrodeo.omnibor.ToProcess.ByUUID
+import goatrodeo.util.ArtifactWrapper
+import goatrodeo.util.FileWalker
+import goatrodeo.util.GitOID
 import goatrodeo.util.Helpers
-import goatrodeo.omnibor.EdgeType
-import scala.util.Try
-import scala.xml.Elem
-import scala.xml.XML
 import goatrodeo.util.PURLHelpers
 import goatrodeo.util.PURLHelpers.Ecosystems
-import goatrodeo.util.FileWalker
+
 import java.util.Properties
+import scala.collection.immutable.TreeMap
+import scala.collection.immutable.TreeSet
+import scala.util.Try
+import scala.xml.NodeSeq
+import scala.xml.XML
 
 enum MavenMarkers extends ProcessingMarker {
   case POM
@@ -138,11 +138,11 @@ case class MavenState(
       item: Item,
       marker: MavenMarkers
   ): (TreeMap[String, TreeSet[StringOrPair]], MavenState) = {
-    import scala.collection.JavaConverters.asScalaIteratorConverter
+    import scala.jdk.CollectionConverters.*
 
     val baseTree = if (pomFile.length() > 4) {
       TreeMap(
-        "pom".intern() -> TreeSet(StringOrPair("text/xml".intern(), pomFile))
+        "pom" -> TreeSet(StringOrPair("text/xml", pomFile))
       )
     } else TreeMap[String, TreeSet[StringOrPair]]()
 
@@ -175,15 +175,16 @@ case class MavenState(
                     .asIterator()
                     .asScala
                     .map(k =>
-                      k.asInstanceOf[String].toLowerCase.intern() -> TreeSet(
+                      k.asInstanceOf[String]
+                        .toLowerCase /*.intern()*/ -> TreeSet(
                         StringOrPair(props.get(k).asInstanceOf[String])
                       )
                     )
                     .toSeq*
                 )
 
-                ret + ("manifest".intern() -> TreeSet(
-                  StringOrPair("text/maven-manifest", manifestString.intern())
+                ret + ("manifest" -> TreeSet(
+                  StringOrPair("text/maven-manifest", manifestString)
                 ))
 
               case None => TreeMap[String, TreeSet[StringOrPair]]()
@@ -290,7 +291,7 @@ final case class MavenToProcess(
 }
 
 object MavenToProcess {
-  val logger = Logger(getClass())
+  val logger: Logger = Logger(getClass())
   def computeMavenFiles(
       byUUID: ToProcess.ByUUID,
       byName: ToProcess.ByName

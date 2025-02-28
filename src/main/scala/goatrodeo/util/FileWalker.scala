@@ -1,36 +1,28 @@
 package goatrodeo.util
 
-import java.io.File
-import scala.util.{Failure, Success, Try}
-import org.apache.commons.compress.compressors.{
-  CompressorInputStream,
-  CompressorStreamFactory
-}
-
-import java.io.InputStream
-import java.util.zip.ZipFile
-import org.apache.commons.compress.archivers.ArchiveStreamFactory
-import org.apache.commons.compress.archivers.ArchiveInputStream
-import org.apache.commons.compress.archivers.ArchiveEntry
-
-import java.io.FileInputStream
-import java.io.BufferedInputStream
-import java.io.IOException
 import com.palantir.isofilereader.isofilereader.IsoFileReader
 import com.typesafe.scalalogging.Logger
+import org.apache.commons.compress.archivers.ArchiveEntry
+import org.apache.commons.compress.archivers.ArchiveInputStream
+import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.compressors.CompressorInputStream
+import org.apache.commons.compress.compressors.CompressorStreamFactory
+
+import java.io.BufferedInputStream
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import org.apache.commons.compress.utils.IOUtils
-import java.io.FileOutputStream
-import java.io.ByteArrayOutputStream
-import java.io.ByteArrayInputStream
+import java.util.zip.ZipFile
+import scala.util.Try
 
 enum FileAction {
   case SkipDive
   case End
 }
 object FileWalker {
-  val logger = Logger(getClass())
+  val logger: Logger = Logger(getClass())
 
   private lazy val zipMimeTypes: Set[String] =
     Set(
@@ -54,7 +46,8 @@ object FileWalker {
       tempDir: Path
   ): OptionalArchiveStream = {
     if (zipMimeTypes.contains(in.mimeType)) {
-      import scala.collection.JavaConverters.asScalaIteratorConverter
+      import scala.jdk.CollectionConverters.IteratorHasAsScala
+
       val theFile = in match {
         case FileWrapper(f, _) => f
         case _ => Helpers.tempFileFromStream(in.asStream(), true, tempDir)
@@ -107,7 +100,6 @@ object FileWalker {
   ): OptionalArchiveStream = {
     if (isoMimeTypes.contains(in.mimeType)) {
       try {
-        import scala.collection.JavaConverters.asScalaIteratorConverter
         val theFile = in match {
           case FileWrapper(f, _) => f
           case _ => Helpers.tempFileFromStream(in.asStream(), true, tempPath)
@@ -215,7 +207,7 @@ object FileWalker {
     }
   }
 
-  val definitelyNotArchive = Set(
+  val definitelyNotArchive: Set[String] = Set(
     "application/java-vm",
     "text/plain",
     "multipart/appledouble",
@@ -250,7 +242,7 @@ object FileWalker {
     "multipart/appledouble"
   )
 
-  val notZip = Set(
+  val notZip: Set[String] = Set(
     "application/x-rpm",
     "application/x-archive",
     "application/x-iso9660-image",
@@ -260,7 +252,7 @@ object FileWalker {
     "application/zstd"
   )
 
-  val notCompressedSet = Set[String](
+  val notCompressedSet: Set[String] = Set[String](
     "application/vnd.android.package-archive"
     // "application/x-debian-package",
     // "application/gzip",

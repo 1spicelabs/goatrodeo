@@ -1,18 +1,19 @@
 package goatrodeo.omnibor.strategies
 
+import com.github.packageurl.PackageURL
+import goatrodeo.omnibor.Item
 import goatrodeo.omnibor.ProcessingState
 import goatrodeo.omnibor.SingleMarker
+import goatrodeo.omnibor.Storage
+import goatrodeo.omnibor.StringOrPair
+import goatrodeo.omnibor.ToProcess
+import goatrodeo.omnibor.ToProcess.ByName
+import goatrodeo.omnibor.ToProcess.ByUUID
 import goatrodeo.util.ArtifactWrapper
-import goatrodeo.omnibor.Item
-import com.github.packageurl.PackageURL
+import goatrodeo.util.GitOID
+
 import scala.collection.immutable.TreeMap
 import scala.collection.immutable.TreeSet
-import goatrodeo.omnibor.StringOrPair
-import goatrodeo.util.GitOID
-import goatrodeo.omnibor.ToProcess
-import goatrodeo.omnibor.ToProcess.ByUUID
-import goatrodeo.omnibor.ToProcess.ByName
-import goatrodeo.omnibor.Storage
 
 class GenericFileState extends ProcessingState[SingleMarker, GenericFileState] {
 

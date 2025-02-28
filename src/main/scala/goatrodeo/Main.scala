@@ -14,33 +14,22 @@ limitations under the License. */
 
 package goatrodeo
 
-import scala.collection.JavaConverters._
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStreamReader
-import java.io.BufferedReader
-import scopt.OParser
-import goatrodeo.util.Helpers
-import java.io.BufferedWriter
-import java.io.FileWriter
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.regex.Pattern
-import goatrodeo.omnibor.{Storage, ListFileNames, Builder}
-import java.io.FileOutputStream
-import java.io.OutputStreamWriter
-import java.util.zip.GZIPOutputStream
-import java.net.URL
-import org.apache.commons.io.filefilter.WildcardFileFilter
-import java.io.FileFilter
-import java.nio.ByteBuffer
-import goatrodeo.util.Helpers.bailFail
-import goatrodeo.util.FileWrapper
 import com.typesafe.scalalogging.Logger
+import goatrodeo.omnibor.Builder
+import goatrodeo.util.Helpers
+import org.apache.commons.io.filefilter.WildcardFileFilter
+import scopt.OParser
+import scopt.OParserBuilder
+
+import java.io.File
+import java.io.FileFilter
+import scala.jdk.CollectionConverters._
 
 /** The `main` class
   */
 object Howdy {
   private val logger = Logger(getClass())
+
   /** Command Line Configuration
     *
     * @param analyze
@@ -58,22 +47,26 @@ object Howdy {
       build: Option[File] = None,
       threads: Int = 4,
       blockList: Option[File] = None,
-      maxRecords: Int = 50000,
+      maxRecords: Int = 50000
   )
 
-  lazy val builder = OParser.builder[Config]
-  lazy val parser1 = {
+  lazy val builder: OParserBuilder[Config] = OParser.builder[Config]
+  lazy val parser1: OParser[Unit, Config] = {
     import builder._
     OParser.sequence(
       programName("goatrodeo"),
       head("goatrodeo", "0.6.2"),
-      opt[File]("block").action((x,c) => c.copy(blockList = Some(x))),
+      opt[File]("block").action((x, c) => c.copy(blockList = Some(x))),
       opt[File]('b', "build")
         .text("Build gitoid database from jar files in a directory")
         .action((x, c) =>
           c.copy(build = Some(x).filter(f => f.exists() && f.isDirectory()))
         ),
-        opt[Int]("maxrecords").text("The maximum number of records to process at once. Default 50,000").action((x,c) => if (x > 100) c.copy(maxRecords = x) else c),
+      opt[Int]("maxrecords")
+        .text(
+          "The maximum number of records to process at once. Default 50,000"
+        )
+        .action((x, c) => if (x > 100) c.copy(maxRecords = x) else c),
       opt[File]('o', "out")
         .text("output directory for the file-system based gitoid storage")
         .action((x, c) => c.copy(out = Some(x))),
@@ -95,7 +88,7 @@ object Howdy {
             f = fixTilde(fa)
             i <- {
               val parent = f.getAbsoluteFile().getParentFile()
-              val wcf: FileFilter = new WildcardFileFilter(f.getName())
+              val wcf: FileFilter = WildcardFileFilter.builder.setWildcards(f.getName()).get()
               parent.listFiles(wcf)
             }
           } yield {
@@ -123,12 +116,15 @@ object Howdy {
 
     // Based on the CLI parse, make the right choices and do the right thing
     parsed match {
-      case Some(Config(Some(out), Some(buildFrom), threads, block, maxRecords))
-         =>
+      case Some(
+            Config(Some(out), Some(buildFrom), threads, block, maxRecords)
+          ) =>
         Builder.buildDB(
           buildFrom,
           out,
-          threads, block, maxRecords
+          threads,
+          block,
+          maxRecords
         )
 
       case Some(

@@ -223,7 +223,12 @@ class MySuite extends munit.FunSuite {
       "Should have a mainter"
     )
     assert(
-      attrs.get("description").get.head.value.contains("ALSA library and its standard plugins"),
+      attrs
+        .get("description")
+        .get
+        .head
+        .value
+        .contains("ALSA library and its standard plugins"),
       "The description must support multi-line"
     )
 
@@ -357,13 +362,12 @@ class MySuite extends munit.FunSuite {
     )
     assert(withPurlSources.length == 2)
 
-        val jars = withPurl.filter(i =>
-      i.connections.filter(_._2.contains("?")).size == 0
-    )
+    val jars =
+      withPurl.filter(i => i.connections.filter(_._2.contains("?")).size == 0)
 
     assert(jars.length == 2, f"Expecting two JARs, but got ${jars.length}")
 
-    val extra = jars(0).body.get.extra 
+    val extra = jars(0).body.get.extra
 
     assert(extra.get("manifest").isDefined)
     assert(extra.get("pom").isDefined)

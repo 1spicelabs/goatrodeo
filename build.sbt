@@ -7,6 +7,17 @@ val scala3Version = "3.6.3"
 
 fork := true
 
+ThisBuild / scalacOptions ++=
+  Seq(
+    "-deprecation",
+    "-unchecked",
+    "-Wunused:imports",
+    "-feature",
+    "-release",
+    "21"
+  )
+
+
 resolvers += "OW2" at "https://repository.ow2.org/nexus/content/repositories/public/"
 Test / logBuffered := false
 
@@ -15,6 +26,8 @@ lazy val root = project
   .settings(
     name := projectName,
     scalaVersion := scala3Version,
+    semanticdbEnabled := true, // enable SemanticDB,
+    semanticdbVersion := scalafixSemanticdb.revision,
     libraryDependencies += "org.scala-lang" %% "toolkit" % "0.4.0",
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.3.0",
     libraryDependencies += "org.apache.bcel" % "bcel" % "6.10.0",

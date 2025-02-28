@@ -1,7 +1,7 @@
 package goatrodeo.util
 
-import com.github.packageurl.PackageURLBuilder
 import com.github.packageurl.PackageURL
+import com.github.packageurl.PackageURLBuilder
 
 /** Helpers related to Package URLs
   */
@@ -25,7 +25,7 @@ object PURLHelpers {
 
   /** Mapping between the Ecosystems and the text names and known qualifiers
     */
-  lazy val ecosystems = Map(
+  lazy val ecosystems: Map[Ecosystems, (String, Some[Map[String, (String, String)]] | None.type)] = Map(
     Ecosystems.Maven -> ("maven", Some(mavenQualifiers)),
     Ecosystems.Debian -> ("deb", None)
   );
